@@ -4,36 +4,36 @@ import boolformer
 import numpy as np
 import pandas as pd
 import torch
-import pickle
-from types import SimpleNamespace
+# import pickle
+# from types import SimpleNamespace
 
-safe_list = {
-    ("collections", "OrderedDict"),
-    ("torch._utils", "_rebuild_tensor_v2"),
-    ("torch", "FloatStorage"),
-}
-
-
-class RestrictedUnpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        # Only allow required classes to load state dict
-        if (module, name) not in safe_list:
-            raise pickle.UnpicklingError(
-                "Global '{}.{}' is forbidden".format(module, name)
-            )
-        return super().find_class(module, name)
+# safe_list = {
+#     ("collections", "OrderedDict"),
+#     ("torch._utils", "_rebuild_tensor_v2"),
+#     ("torch", "FloatStorage"),
+# }
 
 
-RestrictedUnpickle = SimpleNamespace(
-    Unpickler=RestrictedUnpickler,
-    __name__="pickle",
-    load=lambda *args, **kwargs: RestrictedUnpickler(*args, **kwargs).load(),
-)
+# class RestrictedUnpickler(pickle.Unpickler):
+#     def find_class(self, module, name):
+#         # Only allow required classes to load state dict
+#         if (module, name) not in safe_list:
+#             raise pickle.UnpicklingError(
+#                 "Global '{}.{}' is forbidden".format(module, name)
+#             )
+#         return super().find_class(module, name)
+
+
+# RestrictedUnpickle = SimpleNamespace(
+#     Unpickler=RestrictedUnpickler,
+#     __name__="pickle",
+#     load=lambda *args, **kwargs: RestrictedUnpickler(*args, **kwargs).load(),
+# )
 
 
 
-wd = os.getcwd()
-print(wd)
+#wd = os.getcwd()
+#print(wd)
 
 class BFtest:
     def __init__(self, model, data, outcome):
@@ -64,7 +64,7 @@ class BFtest:
             txt = txt.replace(key, value)
         return txt
 
-boolformer_model = torch.load("../../boolformer_noisy.pt", weights_only=True)
+boolformer_model = torch.load("../../boolformer_noisy.pt", weights_only=False)
 
 nfil = len([1 for x in list(os.scandir("data/")) if x.is_file()])
 
