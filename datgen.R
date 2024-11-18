@@ -11,6 +11,8 @@ library(cnasimtools)
 a <- replicate(2, randomDat(6, outcome = "A"), simplify = FALSE)
 
 targets <- lapply(a, \(x) attributes(x)$target)
+writeLines(unlist(targets), file("targets.txt"))
+
 
 ndat <- mapply(prevalence_compliant_noisify,
                model = targets, 
@@ -21,6 +23,12 @@ ndat <- mapply(prevalence_compliant_noisify,
 
 
 
+
 for(i in seq_along(ndat)){
-  write.csv2(ndat[[i]], file = paste0("data/dat", i, ".csv"))
+  write.csv2(ndat[[i]], 
+             file = paste0("data/dat", i, ".csv"),
+             row.names = FALSE)
 }
+
+
+

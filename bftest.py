@@ -1,9 +1,39 @@
 import os
 import csv
-#import boolformer as bf
+import boolformer
 import numpy as np
 import pandas as pd
 import torch
+import pickle
+from types import SimpleNamespace
+
+safe_list = {
+    ("collections", "OrderedDict"),
+    ("torch._utils", "_rebuild_tensor_v2"),
+    ("torch", "FloatStorage"),
+}
+
+
+class RestrictedUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        # Only allow required classes to load state dict
+        if (module, name) not in safe_list:
+            raise pickle.UnpicklingError(
+                "Global '{}.{}' is forbidden".format(module, name)
+            )
+        return super().find_class(module, name)
+
+
+RestrictedUnpickle = SimpleNamespace(
+    Unpickler=RestrictedUnpickler,
+    __name__="pickle",
+    load=lambda *args, **kwargs: RestrictedUnpickler(*args, **kwargs).load(),
+)
+
+
+
+wd = os.getcwd()
+print(wd)
 
 class BFtest:
     def __init__(self, model, data, outcome):
@@ -25,7 +55,7 @@ class BFtest:
         a = a[0].infix()
         #print(a)
         #return a[0].infix()
-        out = translate(a, self.tra_dict)
+        out = self.translate(a, self.tra_dict)
         return out
 
     @staticmethod
@@ -34,16 +64,14 @@ class BFtest:
             txt = txt.replace(key, value)
         return txt
 
-wd = os.getcwd()
-boolformer_model = torch.load("../../boolformer_noisy.pt")
-ip = pd.read_csv("../../data/dat1.csv", sep = ";")
+boolformer_model = torch.load("../../boolformer_noisy.pt", weights_only=True)
 
-nfil = len([1 for x in list(os.scandir("../../data")) if x.is_file()])
+nfil = len([1 for x in list(os.scandir("data/")) if x.is_file()])
 
 res = []
 for i in range(1, nfil+1):
-    ip = pd.read_csv("../../data/dat" + str(i) + ".csv", sep = ";")
+    ip = pd.read_csv("data/dat" + str(i) + ".csv", sep = ";")
     mf = BFtest(boolformer_model, ip, "A")
     res.append(mf.fit())
 
-np.savetxt("../../ress.txt", res, delimiter="\n", fmt="%s")
+np.savetxt("ress.txt", res, delimiter="\n", fmt="%s")
